@@ -8,12 +8,12 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-func magnit(ctx context.Context) map[string]float64 {
+func magnit(ctx context.Context) map[string]int {
 	var nodes_price []*cdp.Node
 	var nodes_name []*cdp.Node
-	var price []float64
+	var price []int
 	var name []string
-	product := make(map[string]float64)
+	product := make(map[string]int)
 
 	chromedp.Run(ctx,
 	  chromedp.Navigate("https://magnit.ru/catalog/"),
@@ -31,7 +31,7 @@ func magnit(ctx context.Context) map[string]float64 {
 	)
   
 	for _, node := range nodes_price {
-	  price = append(price, convertStringToFloat(node.Children[0].NodeValue, MAGNIT_CUT, MAGNIT_START, MAGNIT_END))
+	  price = append(price, convertStringToFloat(node.Children[0].NodeValue, MAGNIT_CUT))
 	}
   
 	for _, node := range nodes_name {

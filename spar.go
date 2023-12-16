@@ -2,52 +2,37 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
+	"maps"
 	"time"
 
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/chromedp"
 )
 
-func getLinks(ctx context.Context) []string {
-	var nodes []*cdp.Node
-	var links []string
-	chromedp.Run(ctx,
-		chromedp.WaitVisible("body > footer"),
-		chromedp.Nodes(`a.section-tile__head`, &nodes, chromedp.NodeVisible),
-	)
+func spar(ctx context.Context) map[string]int {
+	product := make(map[string]int)
 
-	for _, node := range nodes {
-		links = append(links, node.AttributeValue("href"))
-	}
-
-	return links
-}
-
-func spar(ctx context.Context) map[string]float64 {
-	product := make(map[string]float64)
-	chromedp.Run(ctx,
-		chromedp.Navigate("https://myspar.ru/catalog/"))
-	endPoint := getLinks(ctx)
-
-	for i := range endPoint {
-		chromedp.Run(ctx,
-			chromedp.Navigate(URL_SPAR+endPoint[i]),
+	for i := range SPAR_ENDPOINT {
+		if err := chromedp.Run(ctx,
+			chromedp.Navigate(URL_SPAR+SPAR_ENDPOINT[i]),
 			chromedp.Sleep(5*time.Second),
-		)
-		product = getData(ctx)
+		); err != nil {
+			log.Fatalln("crash when navigating to endpoint(outside)")
+		}
+		maps.Copy(product, getData(ctx))
+		log.Println(i+1, " catalog completed")
 	}
 	return product
 }
 
-func getData(ctx context.Context) map[string]float64 {
-	product := make(map[string]float64)
+func getData(ctx context.Context) map[string]int {
+	product := make(map[string]int)
 	var nodes []*cdp.Node
 	var links []string
 	isSubcatalog := false
 
-	chromedp.Run(ctx,
+	if err := chromedp.Run(ctx,
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			if err := chromedp.Nodes(".catalog-tile__area", &nodes, chromedp.AtLeast(0)).Do(ctx); err != nil {
 				log.Fatal(err)
@@ -57,64 +42,78 @@ func getData(ctx context.Context) map[string]float64 {
 			}
 			return nil
 		}),
-	)
+	); err != nil {
+		log.Fatalln("crash when test-search product")
+	}
 
 	if !isSubcatalog {
 		buttonMore(ctx, SPAR_PATH_BUTTON_MORE)
-		product = getDataHelper(ctx)
+		maps.Copy(product, getDataHelper(ctx))
 
 	} else if isSubcatalog {
 		links = getLinks(ctx)
 		for i, link := range links {
-			fmt.Println("link =", i, link)
-			chromedp.Run(ctx,
+			log.Println("link =", i, link)
+			if err := chromedp.Run(ctx,
 				chromedp.Navigate(URL_SPAR+links[i]),
 				chromedp.Sleep(5*time.Second),
-			)
+			); err != nil {
+				log.Fatalln("crash when navigating to endpoint(inside)")
+			}
 			buttonMore(ctx, SPAR_PATH_BUTTON_MORE)
-			product = getDataHelper(ctx)
+			maps.Copy(product, getDataHelper(ctx))
+			log.Println(i+1, " subcatalog completed")
 		}
 	}
-	fmt.Println(product, "\n\n\n\n\n\n")
 	return product
 }
 
-func getDataHelper(ctx context.Context) map[string]float64 {
-	product := make(map[string]float64)
+func getDataHelper(ctx context.Context) map[string]int {
+	product := make(map[string]int)
 	var price_str string
 	var name string
 	var nodes []*cdp.Node
 	var nodes_price []*cdp.Node
 	var nodes_name []*cdp.Node
-	chromedp.Run(ctx,
+	if err := chromedp.Run(ctx,
 		chromedp.Nodes(".catalog-tile__area", &nodes),
 		chromedp.Nodes(".prices__cur", &nodes_price),
 		chromedp.Nodes(".catalog-tile__name", &nodes_name),
-	)
+	); err != nil {
+		log.Fatalln("crash when count products")
+	}
 	if len(nodes_name) > len(nodes_price) {
 		return product
 	}
 	for _, node := range nodes {
-		chromedp.Run(ctx,
+		if err := chromedp.Run(ctx,
 			chromedp.Text(".prices__cur", &price_str, chromedp.ByQuery, chromedp.FromNode(node)),
 			chromedp.Text(".catalog-tile__name", &name, chromedp.ByQuery, chromedp.FromNode(node)),
-		)
-		fmt.Println(name)
-
-		price := convertStringToFloat(price_str, SPAR_CUT, SPAR_START, SPAR_END)
+		); err != nil {
+			log.Fatalln("crash when get product")
+		}
+		price := convertStringToFloat(price_str, SPAR_CUT)
 		product[name] = price
 	}
-	fmt.Println(product)
 	return product
 }
 
-// func test(ctx context.Context) {
-// 	chromedp.Run(ctx,
-// 		chromedp.Navigate("https://myspar.ru/catalog/gorodetskaya-rospis-1/"),
-// 	)
-// 	buttonMore(ctx, SPAR_PATH_BUTTON_MORE)
-// 	fmt.Println(getDataHelper(ctx))
-// }
+func getLinks(ctx context.Context) []string {
+	var nodes []*cdp.Node
+	var links []string
+	if err := chromedp.Run(ctx,
+		chromedp.WaitVisible("body > footer"),
+		chromedp.Nodes(`a.section-tile__head`, &nodes, chromedp.NodeVisible),
+	); err != nil {
+		log.Fatalln("crash when parsing links")
+	}
+
+	for _, node := range nodes {
+		links = append(links, node.AttributeValue("href"))
+	}
+
+	return links
+}
 
 // non-price-oblect
 // button time-alert
