@@ -11,6 +11,10 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
+// 
+// думаю убрать парсер ссылок, чтобы парсилось только то, что востребовано(фрукты, овощи, мясо и тп)
+// +к скорости работы программы, но ссылки могут поменяться и придется вручную переименовывать
+
 var URL_SPAR = "https://myspar.ru" // +catalog
 var URL_SPAR_CATALOG = "https://myspar.ru/catalog/"
 var SPAR_ENDPOINT = []string{"/catalog/khleb-torty-sladosti-1/",
@@ -27,16 +31,16 @@ var SPAR_CUT = 7
 
 var URL_MAGNIT = "https://magnit.ru/catalog/"
 var MAGNIT_PATH_BUTTON_MORE = ".paginate__more"
-var MAGNIT_CUT = 7
-
+var MAGNIT_CUT = 24
+// у ленты очень много кнопок "больше продуктов" -> вероятнее всего надо будет урезать количество каталогов
 var URL_LENTA = "https://lenta.com/catalog/"
-var LENTA_PATH_BUTTON_MORE = ".button--primary catalog-grid__pagination-button"
+var LENTA_PATH_BUTTON_MORE = ".catalog-grid__pagination-button"
 var LENTA_CUT = 0
 
 var URL_AUCHAN = "https://www.auchan.ru/catalog"
 var AUCHAN_PATH_BUTTON_MORE = ".showMoreButton"
 var AUCHAN_CUT = 0
-
+// сайт кривой, не робит каталог
 var URL_PYATEEROCHKA = "https://5ka.ru/rating/catalogue"
 var PYATEEROCHKA_PATH_BUTTON_MORE = ""
 var PYATEEROCHKA_CUT = 0
@@ -53,9 +57,9 @@ func main() {
   ctx, close := chromedp.NewContext(allocCtx)
   defer close()
 //   fmt.Println(spar(ctx))
-  fmt.Println(magnit(ctx))
-  // fmt.Println(lenta(ctx))
-  // fmt.Println(auchan(ctx))
+//   fmt.Println(magnit(ctx))
+//   fmt.Println(lenta(ctx))
+  auchan(ctx)
   // fmt.Println(pyaterochka(ctx))
 }
 
@@ -79,6 +83,7 @@ func buttonMore(ctx context.Context, button_path string) {
 
 func convertStringToInt(price string, cut int) int {
   price = price[:len(price)-cut]
+  fmt.Println(price)
 	res, _ := strconv.Atoi(price)
 	return res
 }

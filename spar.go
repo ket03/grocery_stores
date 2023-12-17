@@ -92,8 +92,7 @@ func getDataHelper(ctx context.Context) map[string]int {
 		); err != nil {
 			log.Fatalln("crash when get product")
 		}
-		price := convertStringToInt(price_str, SPAR_CUT)
-		product[name] = price
+		product[name] = convertStringToInt(price_str, SPAR_CUT)
 	}
 	return product
 }
