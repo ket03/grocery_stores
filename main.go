@@ -27,7 +27,7 @@ var SPAR_CUT = 7
 
 var URL_MAGNIT = "https://magnit.ru/catalog/"
 var MAGNIT_PATH_BUTTON_MORE = ".paginate__more"
-var MAGNIT_CUT = 4
+var MAGNIT_CUT = 7
 
 var URL_LENTA = "https://lenta.com/catalog/"
 var LENTA_PATH_BUTTON_MORE = ".button--primary catalog-grid__pagination-button"
@@ -52,8 +52,8 @@ func main() {
   allocCtx, _ := chromedp.NewExecAllocator(context.Background(), opts...)
   ctx, close := chromedp.NewContext(allocCtx)
   defer close()
-  fmt.Println(spar(ctx))
-  // fmt.Println(magnit(ctx))
+//   fmt.Println(spar(ctx))
+  fmt.Println(magnit(ctx))
   // fmt.Println(lenta(ctx))
   // fmt.Println(auchan(ctx))
   // fmt.Println(pyaterochka(ctx))
@@ -61,8 +61,7 @@ func main() {
 
 func buttonMore(ctx context.Context, button_path string) {
 	var button []*cdp.Node
-	chromedp.Run(ctx,
-		chromedp.WaitVisible("body > footer"),
+	if err := chromedp.Run(ctx,
 		chromedp.Sleep(4*time.Second),
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			if err := chromedp.Nodes(button_path, &button, chromedp.AtLeast(0)).Do(ctx); err != nil {
@@ -73,10 +72,12 @@ func buttonMore(ctx context.Context, button_path string) {
 				buttonMore(ctx, button_path)
 			}
 			return nil
-		}))
+		})); err != nil {
+			log.Fatalln("crash when clicked button more")
+		}
 }
 
-func convertStringToFloat(price string, cut int) int {
+func convertStringToInt(price string, cut int) int {
   price = price[:len(price)-cut]
 	res, _ := strconv.Atoi(price)
 	return res

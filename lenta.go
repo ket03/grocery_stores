@@ -13,21 +13,17 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-func lenta(ctx context.Context) []string {
+func lenta(ctx context.Context) map[string]int {
 	var nodes []*cdp.Node
-	var links []string
+	product := make(map[string]int)
+	// var links []string
 	chromedp.Run(ctx,
 		chromedp.Navigate("https://lenta.com/catalog/"),
-		// chromedp.WaitVisible("body > footer"),
-		chromedp.Sleep(5 * time.Second),
-		chromedp.Nodes(".group-card__title", &nodes, chromedp.ByQueryAll),
+		chromedp.Sleep(3 * time.Second),
+		chromedp.Nodes(".group-card__image", &nodes),
 	)
 
-	fmt.Print(len(nodes))
-	// for _, node := range nodes {
-	// 	links = append(links, node.AttributeValue("href"))
-	//   }
-
-	return links
+	fmt.Println(len(nodes))
+	return product
 }
 

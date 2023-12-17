@@ -92,7 +92,7 @@ func getDataHelper(ctx context.Context) map[string]int {
 		); err != nil {
 			log.Fatalln("crash when get product")
 		}
-		price := convertStringToFloat(price_str, SPAR_CUT)
+		price := convertStringToInt(price_str, SPAR_CUT)
 		product[name] = price
 	}
 	return product
